@@ -113,3 +113,13 @@ export const getAllToday = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: 'Server error', error: String(err) });
   }
 };
+
+// GET /api/attendance/working-hours
+export const getWorkingHoursConfig = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const config = await getWorkingHours();
+    res.json({ config });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: String(err) });
+  }
+};

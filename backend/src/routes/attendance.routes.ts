@@ -5,6 +5,7 @@ import {
   getToday,
   getMonthly,
   getAllToday,
+  getWorkingHoursConfig,
 } from '../controllers/attendance.controller';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
@@ -17,5 +18,6 @@ router.post('/checkout', checkOut);
 router.get('/today', getToday);
 router.get('/monthly', getMonthly);
 router.get('/all', requireAdmin, getAllToday);
+router.get('/working-hours', getWorkingHoursConfig);
 
 export default router;

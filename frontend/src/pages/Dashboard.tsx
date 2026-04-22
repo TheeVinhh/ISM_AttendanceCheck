@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { formatTimeGMT7, getDateLabelGMT7 } from '../utils/timezone';
-import type { AttendanceRecord } from '../types';
+import { formatTimeGMT7, getDateLabelGMT7, getTodayGMT7 } from '../utils/timezone';
+import type { AttendanceRecord, LeaveRequest } from '../types';
+
+interface WorkingHours {
+  morningStart: string;
+  morningEnd: string;
+  afternoonStart: string;
+  afternoonEnd: string;
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -13,6 +20,8 @@ export default function Dashboard() {
   const [actionMsg, setActionMsg] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [todayLeave, setTodayLeave] = useState<LeaveRequest | null>(null);
+  const [workingHours, setWorkingHours] = useState<WorkingHours | null>(null);
 
   const fetchToday = async () => {
     try {
@@ -25,6 +34,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     void fetchToday();
+    // Fetch today's leave request
+    const fetchTodayLeave = async () => {
+      try {
+        const todayStr = getTodayGMT7();
+        const { data } = await api.get<{ leaves: LeaveRequest[] }>('/leaves/my');
+        const today = data.leaves.find((l) => l.date === todayStr && l.status === 'approved');
+        setTodayLeave(today ?? null);
+      } catch {
+        setTodayLeave(null);
+      }
+    };
+    void fetchTodayLeave();
+    // Fetch working hours
+    const fetchWorkingHours = async () => {
+      try {
+        const { data } = await api.get<{ config: WorkingHours }>('/attendance/working-hours');
+        setWorkingHours(data.config);
+      } catch {
+        setWorkingHours(null);
+      }
+    };
+    void fetchWorkingHours();
   }, []);
 
   const handleCheckIn = async () => {
@@ -126,6 +157,30 @@ export default function Dashboard() {
           <p className="text-sm text-gray-400">Loading…</p>
         ) : (
           <>
+            {/* Full Day Leave Message */}
+            {todayLeave && todayLeave.period === 'full_day' && (
+              <div className="rounded-lg border-l-4 border-blue-400 bg-blue-50 px-4 py-4">
+                <p className="flex items-center gap-2 text-base font-semibold text-blue-900">
+                  🎉 Enjoy your well-deserved day off!
+                </p>
+                <p className="mt-2 text-sm text-blue-700">
+                  Your approved leave covers the entire day. Relax and recharge!
+                </p>
+              </div>
+            )}
+
+            {/* Half Day Leave Info */}
+            {todayLeave && todayLeave.period !== 'full_day' && (
+              <div className="mb-4 rounded-lg border-l-4 border-amber-300 bg-amber-50 px-4 py-3">
+                <p className="text-sm font-semibold text-amber-900">
+                  ⏰ Half-day leave: {todayLeave.period === 'half_day_morning' ? 'Morning' : 'Afternoon'} off
+                </p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Check in/out for the {todayLeave.period === 'half_day_morning' ? 'afternoon' : 'morning'} shift below.
+                </p>
+              </div>
+            )}
+
             {/* Feedback */}
             {actionMsg && (
               <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
@@ -168,27 +223,46 @@ export default function Dashboard() {
               </div>
             )}
 
-            {!attendance?.checkInTime ? (
-              <button
-                onClick={handleCheckIn}
-                disabled={actionLoading}
-                className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
-              >
-                {actionLoading ? 'Processing…' : 'Check In'}
-              </button>
-            ) : !attendance.checkOutTime ? (
-              <button
-                onClick={handleCheckOut}
-                disabled={actionLoading}
-                className="rounded-lg bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60"
-              >
-                {actionLoading ? 'Processing…' : 'Check Out'}
-              </button>
-            ) : (
-              <p className="text-sm font-medium text-gray-500">
-                ✅ Attendance complete for today.
-              </p>
+            {/* Shift Times for Half-Day */}
+            {todayLeave && todayLeave.period !== 'full_day' && workingHours && (
+              <div className="mb-4 rounded-lg bg-gray-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {todayLeave.period === 'half_day_morning' ? 'Afternoon' : 'Morning'} Shift
+                </p>
+                <p className="mt-2 font-mono text-sm font-semibold text-gray-900">
+                  {todayLeave.period === 'half_day_morning'
+                    ? `${workingHours.afternoonStart} – ${workingHours.afternoonEnd}`
+                    : `${workingHours.morningStart} – ${workingHours.morningEnd}`}
+                </p>
+              </div>
             )}
+
+            {/* Buttons - Hidden for Full Day Leave */}
+            {!todayLeave || todayLeave.period !== 'full_day' ? (
+              <>
+                {!attendance?.checkInTime ? (
+                  <button
+                    onClick={handleCheckIn}
+                    disabled={actionLoading}
+                    className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+                  >
+                    {actionLoading ? 'Processing…' : 'Check In'}
+                  </button>
+                ) : !attendance.checkOutTime ? (
+                  <button
+                    onClick={handleCheckOut}
+                    disabled={actionLoading}
+                    className="rounded-lg bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60"
+                  >
+                    {actionLoading ? 'Processing…' : 'Check Out'}
+                  </button>
+                ) : (
+                  <p className="text-sm font-medium text-gray-500">
+                    ✅ Attendance complete for today.
+                  </p>
+                )}
+              </>
+            ) : null}
           </>
         )}
       </div>
