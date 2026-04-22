@@ -531,35 +531,39 @@ function RunsTab() {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr className="border-b border-gray-200">
-                {['Period', 'Status', 'Employees', 'Gross Pay', 'Deductions', 'Net Pay', 'Created', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
-                ))}
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Period</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[100px]">Employees</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[140px]">Gross Pay</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[140px]">Deductions</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[140px]">Net Pay</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[120px]">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 min-w-[140px]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {runs.map((run) => (
-                <tr key={run._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-semibold text-gray-800">{MONTHS[(run.month ?? 1) - 1]} {run.year}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[run.status]}`}>
+                <tr key={run._id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                  <td className="px-4 py-4 font-semibold text-gray-900">{MONTHS[(run.month ?? 1) - 1]} {run.year}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGE[run.status]}`}>
                       {STATUS_LABEL[run.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center text-sm">{run.employeeCount}</td>
-                  <td className="px-4 py-3 text-right text-sm">{run.totalGrossPay.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-sm text-red-600">{run.totalDeductions.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-blue-700">
-                    {run.totalNetPay.toLocaleString()}
-                    <span className="ml-1 text-xs font-normal text-gray-400">{run.currency}</span>
+                  <td className="px-4 py-4 text-center text-gray-700 font-medium">{run.employeeCount}</td>
+                  <td className="px-4 py-4 text-right text-gray-900 font-semibold">{run.totalGrossPay.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-right text-red-600 font-semibold">{run.totalDeductions.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-right text-blue-700 font-bold">
+                    {run.totalNetPay.toLocaleString()} <span className="text-xs text-gray-500 font-normal">{run.currency}</span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{new Date(run.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4 text-center text-gray-600 text-sm">{new Date(run.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-4">
                     <button onClick={() => void handleView(run)} disabled={loadingRunId === run._id}
-                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-60">
-                      {loadingRunId === run._id ? 'Loading...' : 'View / Manage'}
+                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition disabled:opacity-60">
+                      {loadingRunId === run._id ? 'Loading...' : 'View'}
                     </button>
                   </td>
                 </tr>
@@ -1143,17 +1147,6 @@ function MyPayslipTab() {
                   <span className="text-red-700">- {fmt(entry.pitAmount)} {entry.currency}</span>
                 </div>
               </div>
-
-              {/* Employer contributions reference */}
-              <details className="text-xs text-gray-400">
-                <summary className="cursor-pointer text-gray-500 hover:text-gray-700">Employer contributions (for reference)</summary>
-                <div className="mt-2 space-y-1 pl-2">
-                  <div className="flex justify-between"><span>BHXH 17.5%</span><span>{fmt(entry.bhxhEmployer)} {entry.currency}</span></div>
-                  <div className="flex justify-between"><span>BHYT 3%</span><span>{fmt(entry.bhytEmployer)} {entry.currency}</span></div>
-                  <div className="flex justify-between"><span>BHTN 1%</span><span>{fmt(entry.bhtnEmployer)} {entry.currency}</span></div>
-                  <div className="flex justify-between font-semibold"><span>Total employer cost</span><span>{fmt(entry.totalInsuranceEmployer + entry.grossPay)} {entry.currency}</span></div>
-                </div>
-              </details>
             </div>
           </div>
 

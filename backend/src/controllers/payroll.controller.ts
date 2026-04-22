@@ -178,7 +178,19 @@ const buildWorkSummary = async (
     const dow = new Date(rec.date + 'T00:00:00').getDay();
     const isWeekend = dow === 0 || dow === 6;
     if (!rec.checkInTime) continue;
-    if (!rec.checkOutTime) {
+
+    // Determine checkout time: use admin-assigned time if available, otherwise use actual checkout time
+    let checkOutTime: Date | null = null;
+    if (rec.otAssignedByAdmin && rec.otAssignedCheckOutTime) {
+      // Use admin-assigned checkout time
+      const [outH, outM] = rec.otAssignedCheckOutTime.split(':').map(Number);
+      const [yr, mo, dy] = rec.date.split('-').map(Number);
+      checkOutTime = new Date(Date.UTC(yr, mo - 1, dy, outH - 7, outM, 0, 0));
+    } else {
+      checkOutTime = rec.checkOutTime;
+    }
+
+    if (!checkOutTime) {
       if (!isWeekend) { rec.status === 'late' ? lateDays++ : presentDays++; }
       continue;
     }
@@ -190,7 +202,7 @@ const buildWorkSummary = async (
     const scheduledCheckInMs = Date.UTC(yr, mo - 1, dy, schH - 7, schM, 0, 0);
     const effectiveCheckIn = new Date(Math.max(rec.checkInTime.getTime(), scheduledCheckInMs));
 
-    const worked = hoursWorked(effectiveCheckIn, rec.checkOutTime);
+    const worked = hoursWorked(effectiveCheckIn, checkOutTime);
     if (isWeekend) {
       weekendHours += worked;
     } else {

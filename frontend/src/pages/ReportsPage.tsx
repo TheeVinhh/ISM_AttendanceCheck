@@ -9,6 +9,8 @@ interface AttendanceRecord {
   checkOutTime?: string;
   status: string;
   notes?: string;
+  otAssignedByAdmin?: boolean;
+  otAssignedCheckOutTime?: string;
 }
 
 interface LeaveRecord {
@@ -58,6 +60,10 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [error, setError] = useState('');
+  // OT assignment state
+  const [otModal, setOtModal] = useState<{ record: AttendanceRecord; dateStr: string } | null>(null);
+  const [otTime, setOtTime] = useState('');
+  const [assigning, setAssigning] = useState(false);
   // Fetch employees on mount
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -146,6 +152,28 @@ export default function ReportsPage() {
     approved: '✓',
     pending: '⏳',
     rejected: '✗',
+  };
+
+  const handleAssignOT = async () => {
+    if (!otModal) return;
+    setAssigning(true);
+    try {
+      await axios.post(`/admin/attendance/${otModal.record._id}/assign-ot`, {
+        otAssignedCheckOutTime: otTime || undefined,
+        remove: !otTime,
+      });
+      setOtModal(null);
+      setOtTime('');
+      // Refresh calendar
+      if (selectedEmployeeId) {
+        const { data } = await axios.get(`/admin/employee/${selectedEmployeeId}/calendar`, { params: { year, month } });
+        setCalendar(data);
+      }
+    } catch {
+      alert('Failed to update OT assignment');
+    } finally {
+      setAssigning(false);
+    }
   };
 
   const exportCSV = async (allEmployees: boolean) => {
@@ -299,18 +327,28 @@ export default function ReportsPage() {
               const record = getRecordForDate(dateStr);
               const leave = getLeaveForDate(dateStr);
               const isWeekend = new Date(year, month - 1, day).getDay() % 6 === 0;
+              const canAssignOT = record && (record.status === 'present' || record.status === 'late');
 
               return (
                 <div
                   key={day}
-                  className={`p-2 border border-gray-200 h-24 ${
+                  onClick={() => {
+                    if (canAssignOT) {
+                      setOtModal({ record, dateStr });
+                      setOtTime(record.otAssignedCheckOutTime ?? '');
+                    }
+                  }}
+                  className={`p-2 border border-gray-200 h-24 transition-colors ${
                     isWeekend ? 'bg-gray-50' : 'bg-white'
-                  } hover:bg-gray-100 transition-colors`}
+                  } ${canAssignOT ? 'cursor-pointer hover:bg-blue-50 hover:border-blue-300' : ''} ${record?.otAssignedByAdmin ? 'ring-2 ring-inset ring-purple-400' : ''}`}
                 >
-                  <div className="text-sm font-bold mb-1">{day}</div>
+                  <div className="flex items-start justify-between mb-1">
+                    <span className="text-sm font-bold">{day}</span>
+                    {record?.otAssignedByAdmin && <span className="text-xs font-bold text-purple-600">⚙️OT</span>}
+                  </div>
                   {record ? (
-                    <div className="space-y-1">
-                      <div className={`px-2 py-1 rounded text-xs font-semibold text-center ${statusColors[record.status] ?? 'bg-gray-100'}`}>
+                    <div className="space-y-0.5">
+                      <div className={`px-1.5 py-0.5 rounded text-xs font-semibold text-center ${statusColors[record.status] ?? 'bg-gray-100'}`}>
                         {statusEmojis[record.status]} {record.status}
                       </div>
                       {record.checkInTime && (
@@ -319,9 +357,12 @@ export default function ReportsPage() {
                       {record.checkOutTime && (
                         <div className="text-xs text-gray-600">Out: {formatTimeGMT7(record.checkOutTime)}</div>
                       )}
+                      {record.otAssignedByAdmin && record.otAssignedCheckOutTime && (
+                        <div className="text-xs text-purple-700 font-semibold">OT → {record.otAssignedCheckOutTime}</div>
+                      )}
                     </div>
                   ) : leave ? (
-                    <div className={`px-2 py-1 rounded text-xs font-semibold text-center ${leaveColors[leave.status] ?? 'bg-gray-100'}`}>
+                    <div className={`px-1.5 py-0.5 rounded text-xs font-semibold text-center ${leaveColors[leave.status] ?? 'bg-gray-100'}`}>
                       {leaveEmojis[leave.status]} Leave
                       <div className="text-xs font-normal mt-0.5 truncate" title={leave.reason}>{leave.reason}</div>
                     </div>
@@ -329,6 +370,72 @@ export default function ReportsPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* OT hint */}
+      {calendar && (
+        <p className="mt-3 text-xs text-gray-500">
+          💡 Click on any <strong>present</strong> or <strong>late</strong> day to assign an OT checkout time for that employee.
+        </p>
+      )}
+
+      {/* OT Assignment Modal */}
+      {otModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <h2 className="text-lg font-bold text-gray-800">Assign OT Checkout Time</h2>
+              <button onClick={() => setOtModal(null)} className="rounded-lg px-2 py-1 text-gray-400 hover:bg-gray-100">✕</button>
+            </div>
+            <div className="space-y-4 px-6 py-5">
+              <div className="rounded-lg bg-gray-50 p-3 text-sm">
+                <p className="font-semibold text-gray-700">Employee: {employees.find(e => e._id === selectedEmployeeId)?.fullName}</p>
+                <p className="text-gray-500">Date: {otModal.dateStr}</p>
+                {otModal.record.checkInTime && (
+                  <p className="text-gray-500">Checked in: {formatTimeGMT7(otModal.record.checkInTime)}</p>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">OT Checkout Time (HH:MM)</label>
+                <input
+                  type="time"
+                  value={otTime}
+                  onChange={(e) => setOtTime(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                />
+                <p className="mt-1.5 text-xs text-gray-500">
+                  This overrides the employee's actual checkout for payroll calculation. The employee cannot earn OT beyond this time.
+                </p>
+              </div>
+              {otModal.record.otAssignedByAdmin && otModal.record.otAssignedCheckOutTime && (
+                <p className="rounded-lg bg-purple-50 px-3 py-2 text-xs text-purple-800">
+                  Current OT checkout: <strong>{otModal.record.otAssignedCheckOutTime}</strong>
+                </p>
+              )}
+              <div className="flex gap-3 justify-end pt-2">
+                <button onClick={() => setOtModal(null)} className="rounded-lg border px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                  Cancel
+                </button>
+                {otModal.record.otAssignedByAdmin && (
+                  <button
+                    onClick={() => { setOtTime(''); setTimeout(() => void handleAssignOT(), 0); }}
+                    disabled={assigning}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                  >
+                    Remove OT
+                  </button>
+                )}
+                <button
+                  onClick={() => void handleAssignOT()}
+                  disabled={assigning || !otTime}
+                  className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
+                >
+                  {assigning ? 'Saving...' : 'Assign OT'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -23,13 +23,13 @@ export default function LeavesPage() {
     try {
       const { data } = await api.get<{ leaves: LeaveRequest[] }>('/leaves/my');
       setLeaves(data.leaves);
-      // Calculate balance
-      const withSalaryUsed = data.leaves.filter(
-        (l) => l.leaveType === 'with_salary' && l.status === 'approved'
-      ).length;
-      const withoutSalaryUsed = data.leaves.filter(
-        (l) => l.leaveType === 'without_salary' && l.status === 'approved'
-      ).length;
+      // Calculate balance – count actual days (full_day = 1, half_day = 0.5)
+      const withSalaryUsed = data.leaves
+        .filter((l) => l.leaveType === 'with_salary' && l.status === 'approved')
+        .reduce((sum, l) => sum + (l.period === 'full_day' ? 1 : 0.5), 0);
+      const withoutSalaryUsed = data.leaves
+        .filter((l) => l.leaveType === 'without_salary' && l.status === 'approved')
+        .reduce((sum, l) => sum + (l.period === 'full_day' ? 1 : 0.5), 0);
       setBalanceWithSalary(12 - withSalaryUsed);
       setBalanceWithoutSalary(31 - withoutSalaryUsed);
     } finally {

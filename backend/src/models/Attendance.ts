@@ -8,6 +8,10 @@ export interface IAttendanceDocument extends Document {
   checkOutTime: Date | null;
   status: AttendanceStatus;
   notes: string;
+  // OT assignment by admin
+  otAssignedByAdmin: boolean; // Is this day assigned as OT by admin?
+  otAssignedCheckOutTime?: string; // Admin-set checkout time (HH:MM format)
+  otAssignedBy?: Types.ObjectId; // Admin user who assigned the OT
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +28,10 @@ const attendanceSchema = new Schema<IAttendanceDocument>(
       default: 'absent',
     },
     notes: { type: String, default: '' },
+    // OT fields
+    otAssignedByAdmin: { type: Boolean, default: false },
+    otAssignedCheckOutTime: { type: String, default: undefined }, // HH:MM format
+    otAssignedBy: { type: Schema.Types.ObjectId, ref: 'User', default: undefined },
   },
   { timestamps: true },
 );

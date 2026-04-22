@@ -83,217 +83,174 @@ export default function WorkingHoursPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-center text-gray-400">
+      <div className="flex h-64 items-center justify-center text-gray-400">
         Loading working hours configuration…
       </div>
     );
   }
 
+  const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition';
+  const labelCls = 'mb-1.5 block text-sm font-semibold text-gray-700';
+  const helpCls = 'mt-1.5 text-xs text-gray-500';
+
   return (
-    <div className="p-6 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-2 text-gray-900">Working Hours Configuration</h1>
-      <p className="text-sm text-gray-600 mb-6">
-        Configure single-shift or two-shift schedule. Break time is not counted as paid hours for hourly employees.
-      </p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Working Hours</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Define the expected shift schedule and late threshold. Break time is excluded from paid hours for hourly employees.
+        </p>
+      </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
-          {error}
-        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
-
       {success && (
-        <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg">
-          {success}
-        </div>
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Legacy Single Shift */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">Single Shift Configuration (Legacy)</h2>
+      <form onSubmit={handleSubmit} className="space-y-5">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check-In Time (Expected)
-              </label>
-              <input
-                type="time"
-                name="checkInTime"
-                value={formData.checkInTime}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                When employees should check in
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check-Out Time (Expected)
-              </label>
-              <input
-                type="time"
-                name="checkOutTime"
-                value={formData.checkOutTime}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                When employees should check out
-              </p>
+        {/* Standard Shift Card */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-lg">🕗</div>
+              <div>
+                <h2 className="font-semibold text-gray-900">Standard Shift</h2>
+                <p className="text-xs text-gray-500">Primary check-in / check-out window used for attendance</p>
+              </div>
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Late Threshold (minutes)
-            </label>
-            <input
-              type="number"
-              name="lateThresholdMinutes"
-              value={formData.lateThresholdMinutes}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Grace period after check-in before marked as late (0 = any time after check-in time is late)
-            </p>
+          <div className="grid gap-5 p-6 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Check-In Time</label>
+              <input type="time" name="checkInTime" value={formData.checkInTime} onChange={handleChange} className={inputCls} />
+              <p className={helpCls}>When employees are expected to arrive</p>
+            </div>
+            <div>
+              <label className={labelCls}>Check-Out Time</label>
+              <input type="time" name="checkOutTime" value={formData.checkOutTime} onChange={handleChange} className={inputCls} />
+              <p className={helpCls}>When employees are expected to leave</p>
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Late Threshold <span className="font-normal text-gray-400">(minutes)</span></label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number" name="lateThresholdMinutes" value={formData.lateThresholdMinutes}
+                  onChange={handleChange} min="0" step="5"
+                  className="w-32 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+                <span className="text-sm text-gray-500">minutes grace period after check-in time</span>
+              </div>
+              <p className={helpCls}>0 = any arrival after check-in time counts as late</p>
+            </div>
           </div>
         </div>
 
-        {/* Two-Shift Configuration */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
-          <h2 className="text-lg font-semibold mb-4 text-blue-900">Two-Shift Configuration</h2>
-          <p className="text-sm text-blue-700 mb-4">
-            For organizations with morning and afternoon shifts. Break time is not counted as paid hours.
-          </p>
+        {/* Two-Shift Card */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-lg">⏱️</div>
+              <div>
+                <h2 className="font-semibold text-gray-900">Two-Shift Schedule</h2>
+                <p className="text-xs text-gray-500">Morning & afternoon shifts with a break between. Break is unpaid for hourly employees.</p>
+              </div>
+            </div>
+          </div>
 
-          <div className="space-y-4">
+          <div className="p-6 space-y-5">
             {/* Morning Shift */}
-            <div className="bg-white rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Morning Shift</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">Morning Shift</p>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    name="morningStart"
-                    value={formData.morningStart}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className={labelCls}>Start Time</label>
+                  <input type="time" name="morningStart" value={formData.morningStart} onChange={handleChange} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    name="morningEnd"
-                    value={formData.morningEnd}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className={labelCls}>End Time</label>
+                  <input type="time" name="morningEnd" value={formData.morningEnd} onChange={handleChange} className={inputCls} />
                 </div>
               </div>
             </div>
 
-            {/* Break Duration */}
-            <div className="bg-white rounded-lg p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Break Duration (minutes)
-              </label>
-              <input
-                type="number"
-                name="breakMinutes"
-                value={formData.breakMinutes}
-                onChange={handleChange}
-                min="0"
-                step="15"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Break between shifts. Not counted as paid hours for hourly employees.
-              </p>
+            {/* Break */}
+            <div className="rounded-lg bg-gray-50 px-4 py-3">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-semibold text-gray-600">Break Duration</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number" name="breakMinutes" value={formData.breakMinutes}
+                    onChange={handleChange} min="0" step="15"
+                    className="w-24 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                  <span className="text-sm text-gray-500">minutes — unpaid for hourly staff</span>
+                </div>
+              </div>
             </div>
 
             {/* Afternoon Shift */}
-            <div className="bg-white rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Afternoon Shift</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">Afternoon Shift</p>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    name="afternoonStart"
-                    value={formData.afternoonStart}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className={labelCls}>Start Time</label>
+                  <input type="time" name="afternoonStart" value={formData.afternoonStart} onChange={handleChange} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    name="afternoonEnd"
-                    value={formData.afternoonEnd}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className={labelCls}>End Time</label>
+                  <input type="time" name="afternoonEnd" value={formData.afternoonEnd} onChange={handleChange} className={inputCls} />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex gap-3 pt-6 border-t border-gray-200">
+        {/* Summary Card */}
+        {config && (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">Active Schedule</p>
+            <div className="grid gap-2 sm:grid-cols-3 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Standard:</span>
+                <span className="font-mono font-semibold text-gray-900">{config.checkInTime} – {config.checkOutTime}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Morning:</span>
+                <span className="font-mono font-semibold text-gray-900">{config.morningStart} – {config.morningEnd}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Afternoon:</span>
+                <span className="font-mono font-semibold text-gray-900">{config.afternoonStart} – {config.afternoonEnd}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Break:</span>
+                <span className="font-mono font-semibold text-gray-900">{config.breakMinutes} min</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Late after:</span>
+                <span className="font-mono font-semibold text-gray-900">{config.lateThresholdMinutes} min</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Save */}
+        <div className="flex items-center justify-end gap-3 rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
+          <p className="text-xs text-gray-500 mr-auto">Changes apply immediately to all future payroll calculations.</p>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
           >
-            {saving ? 'Saving…' : 'Save Configuration'}
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
-      </form>
 
-      {/* Current Configuration Display */}
-      {config && (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-          <h3 className="font-semibold text-gray-900 mb-4">Current Configuration</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Single Shift Check-In:</span>
-              <span className="font-mono font-semibold text-gray-900">{config.checkInTime}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Single Shift Check-Out:</span>
-              <span className="font-mono font-semibold text-gray-900">{config.checkOutTime}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Morning: {config.morningStart} — {config.morningEnd}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Break:</span>
-              <span className="font-mono font-semibold text-gray-900">{config.breakMinutes} mins</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Afternoon: {config.afternoonStart} — {config.afternoonEnd}</span>
-            </div>
-          </div>
-        </div>
-      )}
+      </form>
     </div>
   );
 }

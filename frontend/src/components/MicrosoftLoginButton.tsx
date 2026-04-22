@@ -8,6 +8,7 @@ import type { AuthUser } from '../types';
 interface Props {
   onSuccess: (token: string, user: AuthUser) => void;
   onError: (message: string) => void;
+  label?: string;
 }
 
 // Singleton MSAL instance – one per app lifecycle
@@ -22,7 +23,7 @@ const getMsal = (): { instance: PublicClientApplication; ready: Promise<void> } 
   return { instance: _msal, ready: _initPromise! };
 };
 
-export default function MicrosoftLoginButton({ onSuccess, onError }: Props) {
+export default function MicrosoftLoginButton({ onSuccess, onError, label = 'Continue with Microsoft' }: Props) {
   const [loading, setLoading] = useState(false);
 
   const isConfigured =
@@ -81,7 +82,7 @@ export default function MicrosoftLoginButton({ onSuccess, onError }: Props) {
         <rect x="0" y="11" width="10" height="10" fill="#00a4ef" />
         <rect x="11" y="11" width="10" height="10" fill="#ffb900" />
       </svg>
-      {loading ? 'Signing in…' : 'Continue with Microsoft'}
+      {loading ? 'Signing in…' : label}
     </button>
   );
 }

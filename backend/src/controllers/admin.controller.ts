@@ -283,3 +283,42 @@ export const getEmployeeCalendar = async (req: Request, res: Response): Promise<
     res.status(500).json({ message: 'Server error', error: String(err) });
   }
 };
+
+// POST /api/admin/attendance/:attendanceId/assign-ot
+export const assignOT = async (req: Request, res: Response): Promise<void> => {
+  const { attendanceId } = req.params;
+  const { otAssignedCheckOutTime, remove } = req.body as {
+    otAssignedCheckOutTime?: string;
+    remove?: boolean;
+  };
+
+  try {
+    const attendance = await Attendance.findById(attendanceId);
+    if (!attendance) {
+      res.status(404).json({ message: 'Attendance record not found' });
+      return;
+    }
+
+    if (remove) {
+      // Remove OT assignment
+      attendance.otAssignedByAdmin = false;
+      attendance.otAssignedCheckOutTime = undefined;
+      attendance.otAssignedBy = undefined;
+    } else {
+      // Validate checkout time format (HH:MM)
+      if (!otAssignedCheckOutTime || !/^\d{2}:\d{2}$/.test(otAssignedCheckOutTime)) {
+        res.status(400).json({ message: 'Invalid checkout time format. Use HH:MM' });
+        return;
+      }
+
+      attendance.otAssignedByAdmin = true;
+      attendance.otAssignedCheckOutTime = otAssignedCheckOutTime;
+      attendance.otAssignedBy = (req as any).userId;
+    }
+
+    await attendance.save();
+    res.json({ message: 'OT assignment updated', attendance });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: String(err) });
+  }
+};
