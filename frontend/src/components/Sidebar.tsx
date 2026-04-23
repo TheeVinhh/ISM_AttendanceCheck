@@ -43,9 +43,9 @@ export default function Sidebar() {
     <aside className="flex h-screen w-64 flex-col bg-gray-900 text-white shadow-xl">
       {/* Brand */}
       <div className="flex items-center gap-3 border-b border-gray-700 px-6 py-5">
-        <span className="text-2xl">☀️</span>
+        <span className="text-2xl">⚡</span>
         <div>
-          <p className="text-sm font-bold leading-tight">Sunpro</p>
+          <p className="text-sm font-bold leading-tight">PulseFlow</p>
           <p className="text-xs text-gray-400">Employee Portal</p>
         </div>
       </div>

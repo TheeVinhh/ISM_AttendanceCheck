@@ -49,7 +49,7 @@ export default function Login() {
         <div className="w-full max-w-sm">
           {/* Logo & Branding */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">Sunpro</h1>
+            <h1 className="text-4xl font-bold text-gray-900">PulseFlow</h1>
             <p className="mt-2 text-gray-600">Welcome back, please login to your account</p>
           </div>
 
@@ -86,7 +86,7 @@ export default function Login() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder="Enter your email"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -116,29 +116,75 @@ export default function Login() {
       </div>
 
       {/* Right Side - Gradient Background */}
-      <div className="hidden w-1/2 lg:block relative overflow-hidden bg-gradient-to-br from-purple-600 via-purple-500 to-cyan-400">
+      <div className="hidden w-1/2 lg:block relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-500 to-cyan-400">
+        {/* Animated gradient mesh */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-500/20 to-cyan-400/20" style={{
+            backgroundSize: '400% 400%',
+            animation: 'gradient 15s ease infinite'
+          }}></div>
+        </div>
+
+        {/* Floating blobs */}
+        <div className="absolute top-10 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        <div className="absolute -bottom-8 -left-8 w-72 h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/4 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '4s' }}></div>
+
         {/* Diagonal stripes pattern */}
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.1) 10px, rgba(255, 255, 255, 0.1) 20px)'
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255, 255, 255, 0.05) 15px, rgba(255, 255, 255, 0.05) 30px)'
         }}></div>
-        
-        {/* Curved shape */}
-        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 400 800" preserveAspectRatio="none">
+
+        {/* Curved decorative shapes */}
+        <svg className="absolute inset-0 h-full w-full opacity-10" viewBox="0 0 400 800" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="shapeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.3)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 255, 0.05)" />
+            </linearGradient>
+          </defs>
           <path
-            d="M 200 0 Q 350 200 350 400 Q 350 600 200 800 Q 50 600 50 400 Q 50 200 200 0"
-            fill="rgba(255, 255, 255, 0.05)"
+            d="M 0 200 Q 100 150 200 180 T 400 200 L 400 0 L 0 0 Z"
+            fill="url(#shapeGrad)"
           />
+          <path
+            d="M 0 600 Q 100 550 200 580 T 400 600 L 400 800 L 0 800 Z"
+            fill="url(#shapeGrad)"
+          />
+          <circle cx="100" cy="300" r="80" fill="rgba(255, 255, 255, 0.1)" />
+          <circle cx="300" cy="500" r="60" fill="rgba(255, 255, 255, 0.08)" />
         </svg>
 
-        {/* Center logo */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/30">
-              <span className="text-3xl">☀️</span>
+        {/* Center content with enhanced styling */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="text-center z-10">
+            {/* Animated icon container */}
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/40 bg-white/10 backdrop-blur-sm animate-bounce">
+              <span className="text-4xl">⚡</span>
             </div>
-            <h2 className="text-3xl font-bold text-white">Sunpro</h2>
+            <h2 className="text-4xl font-bold text-white mb-2">PulseFlow</h2>
+            <p className="text-white/70 text-sm font-medium">Enterprise Workforce Management</p>
           </div>
         </div>
+
+        {/* Shine effect */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)',
+          animation: 'shine 3s infinite'
+        }}></div>
+
+        {/* CSS animations */}
+        <style>{`
+          @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+        `}</style>
       </div>
     </div>
   );
