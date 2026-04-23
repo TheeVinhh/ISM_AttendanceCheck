@@ -547,6 +547,9 @@ export const createPayrollRun = async (req: Request, res: Response): Promise<voi
     if (isNaN(month) || month < 1 || month > 12) {
       res.status(400).json({ message: 'Invalid month. Must be between 1 and 12.' }); return;
     }
+
+    const { standardHoursPerDay, scheduledCheckInTime } = await getWorkingConfig();
+    const existing = await PayrollRun.findOne({ year, month });
     const employees = await User.find({ role: 'employee' }).select('fullName email').lean();
 
     const entries = await Promise.all(employees.map(async (emp) => {
