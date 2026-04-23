@@ -84,6 +84,19 @@ export const listEmployees = async (req: Request, res: Response): Promise<void> 
     // Get today's attendance status for each employee
     const employeesWithStatus = await Promise.all(
       employees.map(async (emp) => {
+        // Check for approved leave
+        const leave = await LeaveRequest.findOne({ userId: emp._id, date: today, status: 'approved' });
+        
+        if (leave) {
+          return {
+            _id: emp._id,
+            fullName: emp.fullName,
+            email: emp.email,
+            createdAt: emp.createdAt,
+            todayStatus: 'out of office',
+          };
+        }
+
         const attendance = await Attendance.findOne({ userId: emp._id, date: today });
         let status = 'not checked in';
         if (attendance?.checkInTime) {
