@@ -69,13 +69,13 @@ export default function CalendarPage() {
     void fetchData();
   }, [year, month]);
 
-  const handleAssignOT = async () => {
+  const handleAssignOT = async (remove = false) => {
     if (!otModal) return;
     setAssigning(true);
     try {
       await api.post(`/admin/attendance/${otModal.attendanceId}/assign-ot`, {
-        otAssignedCheckOutTime: otTime || undefined,
-        remove: !otTime,
+        otAssignedCheckOutTime: remove ? undefined : otTime || undefined,
+        remove,
       });
       setOtModal(null);
       setOtTime('');
@@ -295,10 +295,7 @@ export default function CalendarPage() {
                 </button>
                 {otModal.current && (
                   <button
-                    onClick={() => {
-                      setOtTime('');
-                      setTimeout(() => handleAssignOT(), 0);
-                    }}
+                    onClick={() => void handleAssignOT(true)}
                     disabled={assigning}
                     className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
                   >

@@ -154,13 +154,13 @@ export default function ReportsPage() {
     rejected: '✗',
   };
 
-  const handleAssignOT = async () => {
+  const handleAssignOT = async (remove = false) => {
     if (!otModal) return;
     setAssigning(true);
     try {
       await axios.post(`/admin/attendance/${otModal.record._id}/assign-ot`, {
-        otAssignedCheckOutTime: otTime || undefined,
-        remove: !otTime,
+        otAssignedCheckOutTime: remove ? undefined : otTime || undefined,
+        remove,
       });
       setOtModal(null);
       setOtTime('');
@@ -420,7 +420,7 @@ export default function ReportsPage() {
                 </button>
                 {otModal.record.otAssignedByAdmin && (
                   <button
-                    onClick={() => { setOtTime(''); setTimeout(() => void handleAssignOT(), 0); }}
+                    onClick={() => void handleAssignOT(true)}
                     disabled={assigning}
                     className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
                   >
